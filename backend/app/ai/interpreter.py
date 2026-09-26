@@ -17,7 +17,6 @@ if not api_key:
 
 client = genai.Client(api_key=api_key)
 
-
 def interpret_internal_components(
     device: dict,
     search_results: list
@@ -28,7 +27,11 @@ def interpret_internal_components(
 
     This stage is intentionally independent of Qwen.
     """
-
+    safe_device = {
+        "device_type": device.get("device_type"),
+        "manufacturer": device.get("manufacturer"),
+        "model": device.get("model"),
+    }
     documents = []
 
     for index, result in enumerate(search_results, start=1):
@@ -77,7 +80,7 @@ the physical INTERNAL components of the identified equipment.
 
 IDENTIFIED EQUIPMENT:
 
-{json.dumps(device, indent=2)}
+{json.dumps(safe_device, indent=2)}
 
 DOCUMENTATION:
 

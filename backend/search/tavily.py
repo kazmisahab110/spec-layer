@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from tavily import TavilyClient
 
 
-env_path = Path(__file__).resolve().parents[3] / ".env"
+env_path = Path(__file__).resolve().parents[2] / ".env"
 load_dotenv(env_path)
 
 api_key = os.getenv("TAVILY_API_KEY")
@@ -64,9 +64,29 @@ def search_equipment(device: dict):
 
         for result in response.get("results", []):
             url = result.get("url", "")
+            title = result.get("title", "")
 
             if not url or url in seen_urls:
                 continue
+
+            # Reject obvious near-match model documents.
+            # Example:
+            # requested: P2726H
+            # reject:    P2726HE
+            if model:
+                model_upper = model.upper()
+                title_upper = title.upper()
+
+                if model_upper in title_upper:
+                    model_position = title_upper.find(model_upper)
+                    after_model = model_position + len(model_upper)
+
+                    if (
+                        after_model < len(title_upper)
+                        and title_upper[after_model].isalnum()
+                    ):
+                        print(f"Skipping different model: {title}")
+                        continue
 
             seen_urls.add(url)
             all_results.append(result)

@@ -1,13 +1,13 @@
 import json
 
 from app.ai.qwen_vision import analyze_image
-from app.search.tavily import search_equipment
-from app.ai.equipment_analyzer import analyze_equipment
+from search.tavily import search_equipment
+from app.ai.interpreter import interpret_internal_components
 
 
 def run_pipeline(image_path: str):
 
-    # STEP 1 — Identify equipment from image
+    # STEP 1 — Vision
     print("\n[1] Analyzing image with Qwen...\n")
 
     device = analyze_image(image_path)
@@ -16,7 +16,7 @@ def run_pipeline(image_path: str):
     print(json.dumps(device, indent=2))
 
 
-    # STEP 2 — Search web for documentation
+    # STEP 2 — Documentation retrieval
     print("\n[2] Searching documentation with Tavily...\n")
 
     results = search_equipment(device)
@@ -24,22 +24,27 @@ def run_pipeline(image_path: str):
     print("\n=== SEARCH RESULTS ===\n")
 
     for result in results:
-        print("TITLE:", result["title"])
-        print("URL:", result["url"])
-        print("CONTENT:", result["content"][:400])
+        print("TITLE:", result.get("title"))
+        print("URL:", result.get("url"))
+
+        content = result.get("content", "")
+        print("CONTENT:", content[:400])
+
         print("-" * 70)
 
 
-    # STEP 3 — Analyze documentation with Qwen
-    print("\n[3] Building equipment knowledge with Qwen...\n")
+    # STEP 3 — Gemini interprets the documentation
+    print("\n[3] Interpreting documentation with Gemini...\n")
 
-    analysis = analyze_equipment(device, results)
+    analysis = interpret_internal_components(
+        device=device,
+        search_results=results
+    )
 
-    print("\n=== EQUIPMENT ANALYSIS ===\n")
+    print("\n=== GEMINI INTERPRETATION ===\n")
     print(json.dumps(analysis, indent=2))
 
 
-    # Return everything for our future FastAPI endpoint
     return {
         "device": device,
         "search_results": results,
@@ -48,7 +53,5 @@ def run_pipeline(image_path: str):
 
 
 if __name__ == "__main__":
-
     image_path = input("Enter image path: ").strip().strip('"')
-
     run_pipeline(image_path)
