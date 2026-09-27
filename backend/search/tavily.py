@@ -1,204 +1,137 @@
 import os
+import re
 from pathlib import Path
 
 from dotenv import load_dotenv
 from tavily import TavilyClient
 
-
 env_path = Path(__file__).resolve().parents[2] / ".env"
 load_dotenv(env_path)
 
 api_key = os.getenv("TAVILY_API_KEY")
-
 if not api_key:
     raise ValueError("TAVILY_API_KEY was not found in .env")
 
 client = TavilyClient(api_key=api_key)
 
 
-def search_equipment(device: dict):
-    manufacturer = device.get("manufacturer") or ""
+def _identity_text(device: dict) -> str:
+    values = [
+        device.get("manufacturer"),
+        device.get("model"),
+        device.get("device_type"),
+    ]
+    return " ".join(str(v).strip() for v in values if v).strip()
+
+
+def _contains_model_token(text: str, model: str) -> bool:
+    if not text or not model:
+        return False
+    pattern = rf"(?<![A-Za-z0-9]){re.escape(model)}(?![A-Za-z0-9])"
+    return re.search(pattern, text, flags=re.IGNORECASE) is not None
+
+
+def search_equipment(device: dict) -> list:
+    """
+    Retrieve documentation for any identified physical product.
+    Queries are built from product identity, not product category rules.
+    """
+    identity = _identity_text(device)
     model = device.get("model")
-    device_type = device.get("device_type") or ""
+
+    if not identity:
+        return []
+
+    document_queries = [
+        "service manual PDF",
+        "repair manual PDF",
+        "maintenance manual PDF",
+        "parts catalog PDF",
+        "parts manual PDF",
+        "workshop manual PDF",
+        "disassembly PDF",
+        "technical manual PDF",
+        "user manual PDF",
+    ]
+
+    queries = [f"{identity} {suffix}" for suffix in document_queries]
 
     all_results = []
     seen_urls = set()
-
-    # ---------------------------------------------------------
-    # 1. Build queries.
-    #    Service/repair/parts documentation gets highest priority.
-    # ---------------------------------------------------------
-
-    if model:
-        queries = [
-            f"{manufacturer} {model} service manual PDF",
-            f"{manufacturer} {model} repair manual PDF",
-            f"{manufacturer} {model} disassembly manual PDF",
-            f"{manufacturer} {model} parts manual components PDF",
-            f"{manufacturer} {model} maintenance manual PDF",
-            f"{manufacturer} {model} user guide PDF",
-        ]
-    else:
-        queries = [
-            f"{manufacturer} {device_type} service manual PDF",
-            f"{manufacturer} {device_type} repair manual PDF",
-            f"{manufacturer} {device_type} parts components manual PDF",
-            f"{manufacturer} {device_type} user guide PDF",
-        ]
-
-    # ---------------------------------------------------------
-    # 2. Search each query.
-    # ---------------------------------------------------------
 
     for query in queries:
         print(f"\nSearching Tavily for: {query}\n")
 
         try:
-            response = client.search(
-                query=query,
-                max_results=4
-            )
+            response = client.search(query=query, max_results=4)
         except Exception as error:
             print(f"Search failed: {error}")
             continue
 
         for result in response.get("results", []):
             url = result.get("url", "")
-            title = result.get("title", "")
-
             if not url or url in seen_urls:
                 continue
-
-            # Reject obvious near-match model documents.
-            # Example:
-            # requested: P2726H
-            # reject:    P2726HE
-            if model:
-                model_upper = model.upper()
-                title_upper = title.upper()
-
-                if model_upper in title_upper:
-                    model_position = title_upper.find(model_upper)
-                    after_model = model_position + len(model_upper)
-
-                    if (
-                        after_model < len(title_upper)
-                        and title_upper[after_model].isalnum()
-                    ):
-                        print(f"Skipping different model: {title}")
-                        continue
-
             seen_urls.add(url)
             all_results.append(result)
 
-    # ---------------------------------------------------------
-    # 3. Score results.
-    #    Technical/service documentation should rise to the top.
-    # ---------------------------------------------------------
-
-    def document_score(result):
-        title = result.get("title", "").lower()
-        url = result.get("url", "").lower()
-
+    def document_score(result: dict) -> int:
+        title = (result.get("title") or "").lower()
+        url = (result.get("url") or "").lower()
         score = 0
 
-        if "service manual" in title:
-            score += 100
+        weights = {
+            "service manual": 100,
+            "repair manual": 95,
+            "workshop manual": 95,
+            "maintenance manual": 90,
+            "parts catalog": 90,
+            "parts manual": 90,
+            "technical manual": 80,
+            "disassembly": 80,
+            "service": 35,
+            "repair": 35,
+            "parts": 30,
+            "manual": 20,
+            "user guide": 15,
+            "user manual": 15,
+        }
 
-        if "repair manual" in title:
-            score += 90
-
-        if "disassembly" in title:
-            score += 80
-
-        if "maintenance manual" in title:
-            score += 75
-
-        if "parts manual" in title:
-            score += 70
-
-        if "service" in title:
-            score += 40
-
-        if "repair" in title:
-            score += 40
-
-        if "user's guide" in title or "user guide" in title:
-            score += 30
-
-        if "manual" in title:
-            score += 20
-
-        if "parts" in title:
-            score += 20
-
-        if "component" in title:
-            score += 15
+        for phrase, weight in weights.items():
+            if phrase in title:
+                score += weight
 
         if ".pdf" in url:
             score += 20
 
-        # Prefer exact-model results
-        if model and model.lower() in title:
-            score += 30
+        if model and _contains_model_token(title, str(model)):
+            score += 40
+
+        manufacturer = device.get("manufacturer")
+        if manufacturer and str(manufacturer).lower() in title:
+            score += 15
 
         return score
 
-    all_results.sort(
-        key=document_score,
-        reverse=True
-    )
-
-    # Keep only the best results
-    all_results = all_results[:10]
-
-    # ---------------------------------------------------------
-    # 4. Extract useful technical documents.
-    # ---------------------------------------------------------
+    all_results.sort(key=document_score, reverse=True)
+    all_results = all_results[:12]
 
     print("\nExtracting documentation content...\n")
 
     for result in all_results:
-        title = result.get("title", "")
-        title_lower = title.lower()
         url = result.get("url", "")
-
-        looks_useful = (
-            "service" in title_lower
-            or "repair" in title_lower
-            or "manual" in title_lower
-            or "guide" in title_lower
-            or "disassembly" in title_lower
-            or "maintenance" in title_lower
-            or "parts" in title_lower
-            or url.lower().endswith(".pdf")
-            or ".pdf?" in url.lower()
-        )
-
-        if not looks_useful:
-            continue
+        title = result.get("title", "")
 
         try:
             extracted = client.extract(urls=[url])
             extracted_results = extracted.get("results", [])
+            if not extracted_results:
+                continue
 
-            if extracted_results:
-                raw_content = extracted_results[0].get(
-                    "raw_content",
-                    ""
-                )
-
-                if raw_content:
-                    # Keep enough text for later filtering.
-                    # equipment_analyzer.py will send a smaller
-                    # subset to Qwen.
-                    result["extracted_content"] = raw_content[:20000]
-
-                    print(
-                        f"Extracted {len(raw_content)} characters "
-                        f"from: {title}"
-                    )
-
+            raw_content = extracted_results[0].get("raw_content", "")
+            if raw_content:
+                result["extracted_content"] = raw_content[:30000]
+                print(f"Extracted {len(raw_content)} characters from: {title}")
         except Exception as error:
             print(f"Could not extract: {title}")
             print(f"Reason: {error}")
