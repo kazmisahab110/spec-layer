@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="SpecLayer — AI-assisted equipment intelligence and component exploration."
+    >
+
+    <title>SpecLayer — Equipment Intelligence</title>
+
+    <!--
+        Fonts used by the original SpecLayer design.
+        Inter = normal interface text.
+        Space Grotesk = technical/HUD text.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Material Symbols -->
+    <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    >
+
+    <!-- Our CSS -->
+    <link
+        rel="stylesheet"
+        href="styles.css"
+    >
+</head>
+
+
+<body>
+
+    <!-- =========================================================
+         AMBIENT BACKGROUND
+         ========================================================= -->
+
+    <div
+        class="background-grid"
+        aria-hidden="true"
+    ></div>
+
+    <div
+        class="aurora aurora-top"
+        aria-hidden="true"
+    ></div>
+
+    <div
+        class="aurora aurora-left"
+        aria-hidden="true"
+    ></div>
+
+    <div
+        class="aurora aurora-right"
+        aria-hidden="true"
+    ></div>
+
+
+    <!-- =========================================================
+         APPLICATION
+         ========================================================= -->
+
+    <div class="app-shell">
+
+
+        <!-- =====================================================
+             HEADER
+             ===================================================== -->
+
+        <header class="main-header">
+
+            <a
+                class="brand"
+                href="#"
+                aria-label="SpecLayer home"
+            >
+                <span class="brand-name">
+                    SpecLayer
+                </span>
+
+                <span class="beta-badge">
+                    BETA
+                </span>
+            </a>
+
+
+            <div class="header-actions">
+
+                <div class="system-status">
+                    <span class="status-dot"></span>
+
+                    <span>
+                        INTELLIGENCE ENGINE ONLINE
+                    </span>
+                </div>
+
+
+                <button
+                    class="icon-button"
+                    id="settings-button"
+                    type="button"
+                    aria-label="Open settings"
+                    title="Settings"
+                >
+                    <span class="material-symbols-outlined">
+                        settings
+                    </span>
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- =====================================================
+             MAIN
+             ===================================================== -->
+
+        <main class="main-content">
+
+
+            <!-- =================================================
+                 SCREEN 1 — UPLOAD / HOME
+                 ================================================= -->
+
+            <section
+                class="screen upload-screen"
+                id="upload-screen"
+            >
+
+                <div class="hero-copy">
+
+                    <div class="eyebrow">
+                        <span class="eyebrow-dot"></span>
+                        VISUAL EQUIPMENT INTELLIGENCE
+                    </div>
+
+
+                    <h1>
+                        Understand what's
+                        <span>inside the hardware.</span>
+                    </h1>
+
+
+                    <p class="hero-description">
+                        Upload a photo of physical equipment.
+                        SpecLayer identifies the product, searches
+                        technical documentation, maps documented
+                        components and surfaces visual references.
+                    </p>
+
+                </div>
+
+
+                <!-- Upload panel -->
+
+                <div
+                    class="upload-card"
+                    id="upload-card"
+                >
+
+                    <input
+                        id="image-input"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        hidden
+                    >
+
+
+                    <!-- Empty upload state -->
+
+                    <div
+                        class="upload-empty"
+                        id="upload-empty"
+                    >
+
+                        <div class="upload-icon">
+                            <span class="material-symbols-outlined">
+                                add_photo_alternate
+                            </span>
+                        </div>
+
+
+                        <div class="upload-copy">
+
+                            <h2>
+                                Upload equipment image
+                            </h2>
+
+                            <p>
+                                Drag and drop an image here or select
+                                one from your computer.
+                            </p>
+
+                        </div>
+
+
+                        <button
+                            class="primary-button"
+                            id="browse-button"
+                            type="button"
+                        >
+                            <span class="material-symbols-outlined">
+                                upload
+                            </span>
+
+                            SELECT IMAGE
+                        </button>
+
+
+                        <p class="file-hint">
+                            JPG, PNG or WEBP
+                        </p>
+
+                    </div>
+
+
+                    <!-- Image preview state -->
+
+                    <div
+                        class="upload-preview hidden"
+                        id="upload-preview"
+                    >
+
+                        <div class="preview-frame">
+
+                            <img
+                                id="image-preview"
+                                src=""
+                                alt="Selected equipment preview"
+                            >
+
+                            <button
+                                class="preview-remove"
+                                id="remove-image-button"
+                                type="button"
+                                aria-label="Remove selected image"
+                            >
+                                <span class="material-symbols-outlined">
+                                    close
+                                </span>
+                            </button>
+
+                        </div>
+
+
+                        <div class="preview-information">
+
+                            <div>
+
+                                <span class="micro-label">
+                                    INPUT IMAGE
+                                </span>
+
+                                <p
+                                    class="file-name"
+                                    id="selected-file-name"
+                                >
+                                    equipment.jpg
+                                </p>
+
+                            </div>
+
+
+                            <button
+                                class="primary-button analyze-button"
+                                id="analyze-button"
+                                type="button"
+                            >
+                                <span class="material-symbols-outlined">
+                                    radar
+                                </span>
+
+                                ANALYZE EQUIPMENT
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Process explanation -->
+
+                <div class="process-strip">
+
+                    <article class="process-item">
+
+                        <span class="process-number">
+                            01
+                        </span>
+
+                        <div>
+                            <h3>Identify</h3>
+
+                            <p>
+                                Detect product type, manufacturer
+                                and model from the image.
+                            </p>
+                        </div>
+
+                    </article>
+
+
+                    <div class="process-line"></div>
+
+
+                    <article class="process-item">
+
+                        <span class="process-number">
+                            02
+                        </span>
+
+                        <div>
+                            <h3>Research</h3>
+
+                            <p>
+                                Retrieve technical manuals and
+                                documentation for the equipment.
+                            </p>
+                        </div>
+
+                    </article>
+
+
+                    <div class="process-line"></div>
+
+
+                    <article class="process-item">
+
+                        <span class="process-number">
+                            03
+                        </span>
+
+                        <div>
+                            <h3>Map</h3>
+
+                            <p>
+                                Build a documented component and
+                                relationship map.
+                            </p>
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SCREEN 2 — LOADING
+                 ================================================= -->
+
+            <section
+                class="screen loading-screen hidden"
+                id="loading-screen"
+            >
+
+                <div class="loading-radar">
+
+
+                    <div class="radar">
+
+                        <div class="radar-ring radar-ring-one"></div>
+
+                        <div class="radar-ring radar-ring-two"></div>
+
+                        <div class="radar-ring radar-ring-three"></div>
+
+                        <div class="radar-cross radar-cross-horizontal"></div>
+
+                        <div class="radar-cross radar-cross-vertical"></div>
+
+                        <div class="radar-sweep"></div>
+
+                        <div class="radar-center"></div>
+
+                    </div>
+
+
+                    <div class="loading-copy">
+
+                        <div class="loading-status-row">
+
+                            <span class="loading-dot"></span>
+
+                            <span>
+                                ANALYSIS ACTIVE
+                            </span>
+
+                        </div>
+
+
+                        <h2 id="loading-title">
+                            IDENTIFYING EQUIPMENT
+                        </h2>
+
+
+                        <p id="loading-description">
+                            Inspecting visual identifiers and
+                            product information.
+                        </p>
+
+
+                        <div class="loading-progress">
+
+                            <div
+                                class="loading-progress-fill"
+                                id="loading-progress-fill"
+                            ></div>
+
+                        </div>
+
+
+                        <div class="loading-stage-list">
+
+                            <span
+                                class="loading-stage active"
+                                data-stage="identify"
+                            >
+                                IDENTIFY
+                            </span>
+
+                            <span
+                                class="loading-stage"
+                                data-stage="research"
+                            >
+                                RESEARCH
+                            </span>
+
+                            <span
+                                class="loading-stage"
+                                data-stage="components"
+                            >
+                                COMPONENTS
+                            </span>
+
+                            <span
+                                class="loading-stage"
+                                data-stage="media"
+                            >
+                                MEDIA
+                            </span>
+
+                            <span
+                                class="loading-stage"
+                                data-stage="complete"
+                            >
+                                COMPLETE
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SCREEN 3 — RESULTS WORKSPACE
+                 ================================================= -->
+
+            <section
+                class="screen workspace-screen hidden"
+                id="workspace-screen"
+            >
+
+
+                <!-- =============================================
+                     DEVICE HEADER
+                     ============================================= -->
+
+                <div class="device-toolbar">
+
+                    <div class="device-identity">
+
+                        <div class="device-icon">
+
+                            <span class="material-symbols-outlined">
+                                memory
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <span class="micro-label">
+                                IDENTIFIED EQUIPMENT
+                            </span>
+
+                            <h2 id="device-name">
+                                Dell P2726H
+                            </h2>
+
+                            <p id="device-type">
+                                Flat Panel Monitor
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="device-toolbar-actions">
+
+                        <div class="confidence-pill">
+
+                            <span class="status-dot"></span>
+
+                            <span id="device-status">
+                                DOCUMENTATION FOUND
+                            </span>
+
+                        </div>
+
+
+                        <button
+                            class="secondary-button"
+                            id="new-analysis-button"
+                            type="button"
+                        >
+
+                            <span class="material-symbols-outlined">
+                                add_photo_alternate
+                            </span>
+
+                            NEW ANALYSIS
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =============================================
+                     MAIN WORKSPACE GRID
+                     ============================================= -->
+
+                <div class="workspace-grid">
+
+
+                    <!-- =========================================
+                         LEFT — COMPONENT SIDEBAR
+                         ========================================= -->
+
+                    <aside class="workspace-panel component-sidebar">
+
+                        <div class="panel-header">
+
+                            <div>
+
+                                <span class="micro-label">
+                                    STRUCTURE
+                                </span>
+
+                                <h3>
+                                    Components
+                                </h3>
+
+                            </div>
+
+
+                            <span
+                                class="count-badge"
+                                id="component-count"
+                            >
+                                0
+                            </span>
+
+                        </div>
+
+
+                        <div class="component-filters">
+
+                            <button
+                                class="filter-button active"
+                                type="button"
+                                data-filter="all"
+                            >
+                                ALL
+                            </button>
+
+                            <button
+                                class="filter-button"
+                                type="button"
+                                data-filter="internal"
+                            >
+                                INTERNAL
+                            </button>
+
+                            <button
+                                class="filter-button"
+                                type="button"
+                                data-filter="external"
+                            >
+                                EXTERNAL
+                            </button>
+
+                        </div>
+
+
+                        <!-- JS will populate this -->
+
+                        <div
+                            class="component-list"
+                            id="component-list"
+                        >
+
+                            <!-- Prototype placeholder -->
+
+                            <button
+                                class="component-item active"
+                                type="button"
+                            >
+
+                                <span class="component-marker"></span>
+
+                                <span class="component-item-copy">
+
+                                    <strong>
+                                        Select a component
+                                    </strong>
+
+                                    <small>
+                                        DOCUMENTED
+                                    </small>
+
+                                </span>
+
+                                <span class="material-symbols-outlined">
+                                    chevron_right
+                                </span>
+
+                            </button>
+
+                        </div>
+
+                    </aside>
+
+
+                    <!-- =========================================
+                         CENTER — VISUAL WORKSPACE
+                         ========================================= -->
+
+                    <section class="workspace-panel viewport-panel">
+
+
+                        <div class="viewport-toolbar">
+
+                            <div class="viewport-title">
+
+                                <span class="status-dot"></span>
+
+                                <span>
+                                    COMPONENT MAP
+                                </span>
+
+                            </div>
+
+
+                            <div
+                                class="view-switcher"
+                                role="group"
+                                aria-label="Workspace view"
+                            >
+
+                                <button
+                                    class="view-button active"
+                                    id="graph-view-button"
+                                    type="button"
+                                >
+                                    GRAPH
+                                </button>
+
+                                <button
+                                    class="view-button"
+                                    id="model-view-button"
+                                    type="button"
+                                >
+                                    3D REFERENCE
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Graph view -->
+
+                        <div
+                            class="viewport-content"
+                            id="graph-view"
+                        >
+
+                            <div class="canvas-corner corner-top-left"></div>
+                            <div class="canvas-corner corner-top-right"></div>
+                            <div class="canvas-corner corner-bottom-left"></div>
+                            <div class="canvas-corner corner-bottom-right"></div>
+
+
+                            <div
+                                class="graph-canvas"
+                                id="component-graph"
+                            >
+
+                                <!--
+                                    JavaScript will eventually render
+                                    component nodes here.
+                                -->
+
+                                <div class="graph-empty-state">
+
+                                    <div class="graph-empty-icon">
+
+                                        <span class="material-symbols-outlined">
+                                            account_tree
+                                        </span>
+
+                                    </div>
+
+                                    <h3>
+                                        Component relationship map
+                                    </h3>
+
+                                    <p>
+                                        Documented components and their
+                                        relationships will appear here.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="canvas-controls">
+
+                                <button
+                                    type="button"
+                                    aria-label="Zoom out"
+                                >
+                                    <span class="material-symbols-outlined">
+                                        remove
+                                    </span>
+                                </button>
+
+
+                                <span
+                                    class="zoom-value"
+                                    id="zoom-value"
+                                >
+                                    100%
+                                </span>
+
+
+                                <button
+                                    type="button"
+                                    aria-label="Zoom in"
+                                >
+                                    <span class="material-symbols-outlined">
+                                        add
+                                    </span>
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    aria-label="Fit graph"
+                                >
+                                    <span class="material-symbols-outlined">
+                                        fit_screen
+                                    </span>
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- 3D reference view -->
+
+                        <div
+                            class="viewport-content model-view hidden"
+                            id="model-view"
+                        >
+
+                            <div
+                                class="model-container"
+                                id="model-container"
+                            >
+
+                                <div class="model-empty-state">
+
+                                    <div class="model-orbit">
+
+                                        <span class="material-symbols-outlined">
+                                            view_in_ar
+                                        </span>
+
+                                    </div>
+
+                                    <h3>
+                                        No 3D reference selected
+                                    </h3>
+
+                                    <p>
+                                        Select a component with an
+                                        available generic 3D reference.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="reference-notice">
+
+                                <span class="material-symbols-outlined">
+                                    info
+                                </span>
+
+                                Generic visual reference — not an
+                                exact device CAD model.
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- =========================================
+                         RIGHT — COMPONENT INSPECTOR
+                         ========================================= -->
+
+                    <aside class="workspace-panel inspector-panel">
+
+                        <div class="panel-header">
+
+                            <div>
+
+                                <span class="micro-label">
+                                    INSPECTOR
+                                </span>
+
+                                <h3>
+                                    Component Details
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="inspector-empty"
+                            id="inspector-empty"
+                        >
+
+                            <span class="material-symbols-outlined">
+                                touch_app
+                            </span>
+
+                            <p>
+                                Select a component to inspect its
+                                documentation and visual references.
+                            </p>
+
+                        </div>
+
+
+                        <div
+                            class="inspector-content hidden"
+                            id="inspector-content"
+                        >
+
+                            <div class="inspector-title-row">
+
+                                <div>
+
+                                    <span
+                                        class="scope-badge"
+                                        id="component-scope"
+                                    >
+                                        INTERNAL
+                                    </span>
+
+                                    <h2 id="component-name">
+                                        USB Board
+                                    </h2>
+
+                                </div>
+
+
+                                <span
+                                    class="evidence-badge"
+                                    id="component-evidence"
+                                >
+                                    DOCUMENTED
+                                </span>
+
+                            </div>
+
+
+                            <div class="inspector-section">
+
+                                <span class="micro-label">
+                                    FUNCTION
+                                </span>
+
+                                <p id="component-function">
+                                    Component function will appear here.
+                                </p>
+
+                            </div>
+
+
+                            <div class="inspector-section">
+
+                                <div class="section-heading-row">
+
+                                    <span class="micro-label">
+                                        VISUAL REFERENCE
+                                    </span>
+
+                                    <span class="generic-label">
+                                        GENERIC
+                                    </span>
+
+                                </div>
+
+
+                                <div
+                                    class="component-image-frame"
+                                    id="component-image-frame"
+                                >
+
+                                    <div class="image-placeholder">
+
+                                        <span class="material-symbols-outlined">
+                                            image
+                                        </span>
+
+                                        <span>
+                                            No image available
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="inspector-section">
+
+                                <span class="micro-label">
+                                    SOURCE EVIDENCE
+                                </span>
+
+
+                                <div
+                                    class="evidence-source-list"
+                                    id="component-source-list"
+                                >
+                                    <!-- JS -->
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </aside>
+
+                </div>
+
+
+                <!-- =============================================
+                     SOURCES
+                     ============================================= -->
+
+                <section class="sources-panel">
+
+                    <div class="sources-heading">
+
+                        <div>
+
+                            <span class="micro-label">
+                                GROUNDING
+                            </span>
+
+                            <h3>
+                                Technical Sources
+                            </h3>
+
+                        </div>
+
+
+                        <span
+                            class="count-badge"
+                            id="source-count"
+                        >
+                            0
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        class="sources-list"
+                        id="sources-list"
+                    >
+
+                        <!-- JS will populate real sources -->
+
+                        <div class="source-placeholder">
+
+                            <span class="material-symbols-outlined">
+                                description
+                            </span>
+
+                            Technical documentation used by the
+                            analysis will appear here.
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =============================================
+                     LIMITATIONS
+                     ============================================= -->
+
+                <section
+                    class="limitations-panel hidden"
+                    id="limitations-panel"
+                >
+
+                    <div class="limitations-icon">
+
+                        <span class="material-symbols-outlined">
+                            info
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="micro-label">
+                            ANALYSIS NOTES
+                        </span>
+
+                        <div id="limitations-list">
+                            <!-- JS -->
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+
+            <!-- =================================================
+                 ERROR SCREEN
+                 ================================================= -->
+
+            <section
+                class="screen error-screen hidden"
+                id="error-screen"
+            >
+
+                <div class="error-card">
+
+                    <div class="error-icon">
+
+                        <span class="material-symbols-outlined">
+                            error
+                        </span>
+
+                    </div>
+
+
+                    <span class="micro-label">
+                        ANALYSIS INTERRUPTED
+                    </span>
+
+
+                    <h2>
+                        Unable to complete analysis
+                    </h2>
+
+
+                    <p id="error-message">
+                        Something went wrong while communicating
+                        with the analysis engine.
+                    </p>
+
+
+                    <button
+                        class="primary-button"
+                        id="try-again-button"
+                        type="button"
+                    >
+                        TRY AGAIN
+                    </button>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- =====================================================
+             FOOTER
+             ===================================================== -->
+
+        <footer class="main-footer">
+
+            <div>
+
+                <strong>
+                    SpecLayer
+                </strong>
+
+                <span>
+                    Evidence-grounded equipment intelligence
+                </span>
+
+            </div>
+
+
+            <div class="footer-status">
+
+                <span class="status-dot"></span>
+
+                MVP PROTOTYPE
+
+            </div>
+
+        </footer>
+
+    </div>
+
+
+    <!-- =========================================================
+         SETTINGS OVERLAY
+         ========================================================= -->
+
+    <div
+        class="settings-overlay hidden"
+        id="settings-overlay"
+    ></div>
+
+
+    <!-- =========================================================
+         SETTINGS DRAWER
+         ========================================================= -->
+
+    <aside
+        class="settings-drawer"
+        id="settings-drawer"
+        aria-hidden="true"
+    >
+
+        <div class="settings-header">
+
+            <div>
+
+                <span class="micro-label">
+                    WORKSPACE
+                </span>
+
+                <h2>
+                    Settings
+                </h2>
+
+            </div>
+
+
+            <button
+                class="icon-button"
+                id="close-settings-button"
+                type="button"
+                aria-label="Close settings"
+            >
+
+                <span class="material-symbols-outlined">
+                    close
+                </span>
+
+            </button>
+
+        </div>
+
+
+        <div class="settings-content">
+
+
+            <section class="settings-section">
+
+                <span class="micro-label">
+                    DISPLAY
+                </span>
+
+
+                <label class="setting-row">
+
+                    <div>
+
+                        <strong>
+                            Ambient grid
+                        </strong>
+
+                        <small>
+                            Show the technical workspace grid.
+                        </small>
+
+                    </div>
+
+
+                    <input
+                        id="grid-toggle"
+                        type="checkbox"
+                        checked
+                    >
+
+                </label>
+
+
+                <label class="setting-row">
+
+                    <div>
+
+                        <strong>
+                            Reduced motion
+                        </strong>
+
+                        <small>
+                            Minimize radar and interface animation.
+                        </small>
+
+                    </div>
+
+
+                    <input
+                        id="motion-toggle"
+                        type="checkbox"
+                    >
+
+                </label>
+
+            </section>
+
+
+            <section class="settings-section">
+
+                <span class="micro-label">
+                    REFERENCE DATA
+                </span>
+
+
+                <div class="settings-note">
+
+                    <span class="material-symbols-outlined">
+                        verified
+                    </span>
+
+
+                    <p>
+                        Component information is derived from
+                        retrieved documentation. Images and 3D
+                        models are generic visual references unless
+                        explicitly identified otherwise.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <section class="settings-section">
+
+                <span class="micro-label">
+                    PROTOTYPE
+                </span>
+
+
+                <div class="version-row">
+
+                    <span>
+                        SpecLayer MVP
+                    </span>
+
+                    <strong>
+                        v0.1
+                    </strong>
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+        <div class="settings-footer">
+
+            <span>
+                SPECLAYER STUDIO
+            </span>
+
+            <span>
+                BETA
+            </span>
+
+        </div>
+
+    </aside>
+
+
+    <!--
+        We will build this file next.
+
+        Leave script.js empty for now.
+        The page itself will still render without it.
+    -->
+    <script src="script.js"></script>
+
+</body>
+</html>

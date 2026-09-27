@@ -5,11 +5,23 @@ import tempfile
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from app.orchestrator.pipeline import run_pipeline
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Spec Layer API",
     description="Visual product and equipment intelligence API",
     version="0.2.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
