@@ -2,6 +2,7 @@ import base64
 import json
 import os
 import re
+import time
 from io import BytesIO
 from pathlib import Path
 
@@ -543,35 +544,71 @@ Do not include code fences.
 Do not include commentary before or after the JSON.
 """
 
-    try:
-        response = client.chat(
-            model=VISION_MODEL,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                    "images": [
-                        image_base64,
-                    ],
-                }
-            ],
+    max_attempts = 3
+    retry_delays = [10, 30]
 
-            # Ask Ollama for schema-constrained output.
-            format=VISION_SCHEMA,
+    for attempt in range(1, max_attempts + 1):
+        try:
+            print(
+                f"[Vision] Ollama attempt "
+                f"{attempt}/{max_attempts} "
+                f"using {VISION_MODEL}..."
+            )
 
-            options={
-                "temperature": 0,
+            response = client.chat(
+                model=VISION_MODEL,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt,
+                        "images": [
+                            image_base64,
+                        ],
+                    }
+                ],
 
-                # Enough room for identification without encouraging
-                # an unnecessarily long response.
-                "num_predict": 600,
-            },
-        )
+                format=VISION_SCHEMA,
 
-    except Exception as exc:
-        raise RuntimeError(
-            f"Vision analysis failed: {exc}"
-        ) from exc
+                options={
+                    "temperature": 0,
+                    "num_predict": 600,
+                },
+            )
+
+            print(
+                f"[Vision] Ollama attempt "
+                f"{attempt}/{max_attempts} succeeded."
+            )
+
+            break
+
+        except Exception as exc:
+            error_text = str(exc).lower()
+
+            is_temporary_slot_error = (
+                "429" in error_text
+                or "concurrent request slot" in error_text
+            )
+
+            if (
+                is_temporary_slot_error
+                and attempt < max_attempts
+            ):
+                delay = retry_delays[attempt - 1]
+
+                print(
+                    f"[Vision] Temporary Ollama Cloud "
+                    f"capacity error on attempt "
+                    f"{attempt}/{max_attempts}. "
+                    f"Retrying in {delay} seconds..."
+                )
+
+                time.sleep(delay)
+                continue
+
+            raise RuntimeError(
+                f"Vision analysis failed: {exc}"
+            ) from exc
 
     message = response.get(
         "message",
