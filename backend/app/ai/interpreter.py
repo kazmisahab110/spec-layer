@@ -37,7 +37,7 @@ if OLLAMA_API_KEY:
 client = ollama.Client(
     host=OLLAMA_BASE_URL,
     headers=client_headers,
-    timeout=180,
+    timeout=600,
 )
 
 # ---------------------------------------------------------
