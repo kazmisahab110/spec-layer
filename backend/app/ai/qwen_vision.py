@@ -20,6 +20,10 @@ load_dotenv(ROOT_DIR / ".env")
 OLLAMA_BASE_URL = os.getenv(
     "OLLAMA_BASE_URL",
     "http://localhost:11434",
+).rstrip("/")
+
+OLLAMA_API_KEY = os.getenv(
+    "OLLAMA_API_KEY",
 )
 
 VISION_MODEL = os.getenv(
@@ -37,8 +41,14 @@ JPEG_QUALITY = 85
 # Ollama client
 # ---------------------------------------------------------
 
+client_headers = {}
+
+if OLLAMA_API_KEY:
+    client_headers["Authorization"] = f"Bearer {OLLAMA_API_KEY}"
+
 client = ollama.Client(
     host=OLLAMA_BASE_URL,
+    headers=client_headers,
     timeout=120,
 )
 

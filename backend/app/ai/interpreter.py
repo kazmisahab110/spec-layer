@@ -14,11 +14,31 @@ from dotenv import load_dotenv
 ROOT_DIR = Path(__file__).resolve().parents[3]
 load_dotenv(ROOT_DIR / ".env")
 
+
+OLLAMA_BASE_URL = os.getenv(
+    "OLLAMA_BASE_URL",
+    "http://localhost:11434",
+).rstrip("/")
+
+OLLAMA_API_KEY = os.getenv(
+    "OLLAMA_API_KEY",
+)
+
 OLLAMA_INTERPRETER_MODEL = os.getenv(
     "OLLAMA_INTERPRETER_MODEL",
     "gpt-oss:20b-cloud",
 )
 
+client_headers = {}
+
+if OLLAMA_API_KEY:
+    client_headers["Authorization"] = f"Bearer {OLLAMA_API_KEY}"
+
+client = ollama.Client(
+    host=OLLAMA_BASE_URL,
+    headers=client_headers,
+    timeout=180,
+)
 
 # ---------------------------------------------------------
 # Constants
@@ -875,7 +895,7 @@ Do NOT manufacture claims merely to populate either array.
         f"[Interpreter] Calling model: {OLLAMA_INTERPRETER_MODEL}"
     )
 
-    response = ollama.chat(
+    response = client.chat(
         model=OLLAMA_INTERPRETER_MODEL,
         messages=[
             {
