@@ -32,6 +32,8 @@ const API_BASE_URL = "http://127.0.0.1:8000";
 
 const ANALYZE_ENDPOINT = `${API_BASE_URL}/analyze`;
 
+let currentAnalysis = null;
+
 
 // ============================================================
 // 2. GET HTML ELEMENTS
@@ -81,6 +83,8 @@ const errorScreen = document.getElementById(
 );
 
 
+
+
 // Loading UI
 
 const loadingTitle = document.getElementById(
@@ -114,9 +118,55 @@ const componentCount = document.getElementById(
     "component-count"
 );
 
+const componentGraph = document.getElementById(
+    "component-graph"
+);
+
+const componentList = document.getElementById(
+    "component-list"
+);
+
+const filterButtons = document.querySelectorAll(
+    ".filter-button"
+);
+
 const sourceCount = document.getElementById(
     "source-count"
 );
+
+const componentImageFrame =
+    document.getElementById("component-image-frame");
+
+// Inspector UI
+
+const inspectorEmpty = document.getElementById(
+    "inspector-empty"
+);
+
+const inspectorContent = document.getElementById(
+    "inspector-content"
+);
+
+const componentScope = document.getElementById(
+    "component-scope"
+);
+
+const componentName = document.getElementById(
+    "component-name"
+);
+
+const componentEvidence = document.getElementById(
+    "component-evidence"
+);
+
+const componentFunction = document.getElementById(
+    "component-function"
+);
+
+const componentSourceList = document.getElementById(
+    "component-source-list"
+);
+
 
 
 // Error UI
@@ -158,6 +208,7 @@ const closeSettingsButton = document.getElementById(
 // ============================================================
 
 let selectedFile = null;
+let activeComponentFilter = "all";
 
 
 // ============================================================
@@ -485,6 +536,17 @@ async function analyzeEquipment() {
 
         console.log(data);
 
+        currentAnalysis = data;
+
+        // Expose it so we can inspect it in
+        // the browser Developer Tools console.
+        window.currentAnalysis = data;
+
+        console.log(
+            "[SpecLayer] Full analysis stored:",
+            currentAnalysis
+        );
+
 
         loadingProgressFill.style.width =
             "100%";
@@ -662,7 +724,11 @@ function displaySimpleResult(data) {
 
 
     componentCount.textContent =
-        String(components.length);
+    String(components.length);
+
+    renderComponentList(components);
+
+    renderComponentGraph(components);
 
 
     // ----------------------------------------
@@ -705,6 +771,960 @@ function displaySimpleResult(data) {
 
 }
 
+// ============================================================
+// 13. RENDER COMPONENT LIST
+// ============================================================
+
+function renderComponentList(components) {
+
+    componentList.innerHTML = "";
+
+    if (!Array.isArray(components)) {
+        return;
+    }
+
+    if (components.length === 0) {
+
+        const emptyMessage =
+            document.createElement("div");
+
+        emptyMessage.className =
+            "component-list-empty";
+
+        emptyMessage.textContent =
+            "No documented components found.";
+
+        componentList.appendChild(
+            emptyMessage
+        );
+
+        return;
+    }
+
+
+    components.forEach(function (component) {
+
+        const item =
+            document.createElement("button");
+
+        item.type = "button";
+
+        item.className =
+            "component-item";
+
+        item.dataset.componentId =
+            component.id || "";
+
+
+        const name =
+            document.createElement("span");
+
+        name.className =
+            "component-item-name";
+
+        name.textContent =
+            component.name ||
+            "Unnamed component";
+
+
+        const scope =
+            document.createElement("span");
+
+        scope.className =
+            "component-item-scope";
+
+        scope.textContent =
+            component.scope ||
+            "unknown";
+
+
+        item.appendChild(name);
+        item.appendChild(scope);
+
+
+        // ------------------------------------
+        // Component selection
+        // ------------------------------------
+
+        item.addEventListener(
+            "click",
+            function () {
+
+                selectComponent(
+                    component,
+                    item
+                );
+
+            }
+        );
+
+
+        componentList.appendChild(item);
+
+    });
+
+}
+
+// ============================================================
+// RENDER COMPONENT GRAPH
+// ============================================================
+
+function renderComponentGraph(components) {
+
+    componentGraph.innerHTML = "";
+
+    if (!Array.isArray(components)) {
+        return;
+    }
+
+
+    // ----------------------------------------
+    // Empty graph state
+    // ----------------------------------------
+
+    if (components.length === 0) {
+
+        const emptyState =
+            document.createElement("div");
+
+        emptyState.className =
+            "graph-empty-state";
+
+        emptyState.innerHTML = `
+            <div class="graph-empty-icon">
+                <span class="material-symbols-outlined">
+                    account_tree
+                </span>
+            </div>
+
+            <h3>No documented components</h3>
+
+            <p>
+                No component nodes were returned
+                for this analysis.
+            </p>
+        `;
+
+        componentGraph.appendChild(
+            emptyState
+        );
+
+        return;
+    }
+
+
+    // ----------------------------------------
+    // Node layer
+    // ----------------------------------------
+
+    const nodeLayer =
+        document.createElement("div");
+
+    nodeLayer.className =
+        "graph-node-layer";
+
+
+    const total =
+        components.length;
+
+
+    components.forEach(
+        function (component, index) {
+
+            const node =
+                document.createElement("button");
+
+            node.type = "button";
+
+            node.className =
+                "graph-node";
+
+            node.dataset.componentId =
+                component.id || "";
+
+            node.dataset.scope =
+                component.scope || "unknown";
+
+            node.title =
+                component.name ||
+                "Unnamed component";
+
+
+            // --------------------------------
+            // Responsive grid layout
+            // --------------------------------
+
+            const columns =
+                total <= 4
+                    ? 2
+                    : total <= 9
+                        ? 3
+                        : 4;
+
+            const rows =
+                Math.ceil(
+                    total / columns
+                );
+
+            const column =
+                index % columns;
+
+            const row =
+                Math.floor(
+                    index / columns
+                );
+
+
+            const x =
+                columns === 1
+                    ? 50
+                    : 10 +
+                    (
+                        column /
+                        (columns - 1)
+                    ) * 80;
+
+
+            const y =
+                rows === 1
+                    ? 50
+                    : 12 +
+                        (
+                            row /
+                            (rows - 1)
+                        ) * 76;
+
+            node.style.left =
+                `${x}%`;
+
+            node.style.top =
+                `${y}%`;
+
+
+            // --------------------------------
+            // Scope marker
+            // --------------------------------
+
+            const marker =
+                document.createElement("span");
+
+            marker.className =
+                "graph-node-marker";
+
+
+            // --------------------------------
+            // Text
+            // --------------------------------
+
+            const copy =
+                document.createElement("span");
+
+            copy.className =
+                "graph-node-copy";
+
+
+            const name =
+                document.createElement("strong");
+
+            name.textContent =
+                component.name ||
+                "Unnamed component";
+
+
+            const scope =
+                document.createElement("small");
+
+            scope.textContent =
+                (
+                    component.scope ||
+                    "unknown"
+                ).toUpperCase();
+
+
+            copy.appendChild(name);
+            copy.appendChild(scope);
+
+            node.appendChild(marker);
+            node.appendChild(copy);
+
+
+            // --------------------------------
+            // Select component from graph
+            // --------------------------------
+
+            node.addEventListener(
+                "click",
+                function () {
+
+                    selectGraphComponent(
+                        component,
+                        node
+                    );
+
+                }
+            );
+
+
+            nodeLayer.appendChild(
+                node
+            );
+
+        }
+    );
+
+
+    componentGraph.appendChild(
+        nodeLayer
+    );
+
+}
+
+// ============================================================
+// GRAPH COMPONENT SELECTION
+// ============================================================
+
+function selectGraphComponent(
+    component,
+    selectedNode
+) {
+
+    // ----------------------------------------
+    // Clear previous graph selection
+    // ----------------------------------------
+
+    const graphNodes =
+        componentGraph.querySelectorAll(
+            ".graph-node"
+        );
+
+    graphNodes.forEach(function (node) {
+
+        node.classList.remove(
+            "active"
+        );
+
+    });
+
+
+    // ----------------------------------------
+    // Highlight selected graph node
+    // ----------------------------------------
+
+    if (selectedNode) {
+
+        selectedNode.classList.add(
+            "active"
+        );
+
+    }
+
+
+    // ----------------------------------------
+    // Find matching sidebar component
+    // ----------------------------------------
+
+    const sidebarItems =
+        componentList.querySelectorAll(
+            ".component-item"
+        );
+
+    let matchingSidebarItem = null;
+
+    sidebarItems.forEach(function (item) {
+
+        if (
+            item.dataset.componentId ===
+            component.id
+        ) {
+
+            matchingSidebarItem = item;
+
+        }
+
+    });
+
+
+    // ----------------------------------------
+    // Reuse our working Inspector selection
+    // ----------------------------------------
+
+    selectComponent(
+        component,
+        matchingSidebarItem
+    );
+
+}
+
+// ============================================================
+// GRAPH COMPONENT SELECTION
+// ============================================================
+
+function selectGraphComponent(
+    component,
+    selectedNode
+) {
+
+    // ----------------------------------------
+    // Clear previous graph selection
+    // ----------------------------------------
+
+    const graphNodes =
+        componentGraph.querySelectorAll(
+            ".graph-node"
+        );
+
+    graphNodes.forEach(function (node) {
+
+        node.classList.remove(
+            "active"
+        );
+
+    });
+
+
+    // ----------------------------------------
+    // Highlight selected graph node
+    // ----------------------------------------
+
+    if (selectedNode) {
+
+        selectedNode.classList.add(
+            "active"
+        );
+
+    }
+
+
+    // ----------------------------------------
+    // Find matching sidebar component
+    // ----------------------------------------
+
+    const sidebarItems =
+        componentList.querySelectorAll(
+            ".component-item"
+        );
+
+    let matchingSidebarItem = null;
+
+    sidebarItems.forEach(function (item) {
+
+        if (
+            item.dataset.componentId ===
+            component.id
+        ) {
+
+            matchingSidebarItem = item;
+
+        }
+
+    });
+
+
+    // ----------------------------------------
+    // Reuse our working Inspector selection
+    // ----------------------------------------
+
+    selectComponent(
+        component,
+        matchingSidebarItem
+    );
+
+}
+
+// ============================================================
+// COMPONENT SELECTION + BASIC INSPECTOR
+// ============================================================
+
+function selectComponent(component, selectedItem) {
+
+    if (!component) {
+        return;
+    }
+
+
+    // ----------------------------------------
+    // Remove previous sidebar selection
+    // ----------------------------------------
+
+    const componentItems =
+        componentList.querySelectorAll(
+            ".component-item"
+        );
+
+    componentItems.forEach(function (item) {
+
+        item.classList.remove(
+            "active"
+        );
+
+    });
+
+
+    // ----------------------------------------
+    // Highlight selected component
+    // ----------------------------------------
+
+    if (selectedItem) {
+
+        selectedItem.classList.add(
+            "active"
+        );
+
+    }
+
+
+    // ----------------------------------------
+    // Hide empty Inspector
+    // ----------------------------------------
+
+    inspectorEmpty.classList.add(
+        "hidden"
+    );
+
+
+    // ----------------------------------------
+    // Show Inspector content
+    // ----------------------------------------
+
+    inspectorContent.classList.remove(
+        "hidden"
+    );
+
+
+    // ----------------------------------------
+    // Component name
+    // ----------------------------------------
+
+    componentName.textContent =
+        component.name ||
+        "Unnamed component";
+
+
+    // ----------------------------------------
+    // Scope
+    // ----------------------------------------
+
+    componentScope.textContent =
+        (
+            component.scope ||
+            "unknown"
+        ).toUpperCase();
+
+
+    // ----------------------------------------
+    // Evidence level
+    // ----------------------------------------
+
+    componentEvidence.textContent =
+        (
+            component.evidence_level ||
+            "unknown"
+        ).toUpperCase();
+
+
+    // ----------------------------------------
+    // Function
+    // ----------------------------------------
+
+    if (component.function) {
+
+        componentFunction.textContent =
+            component.function;
+
+    }
+    else {
+
+        componentFunction.textContent =
+            "Not specified in the retrieved documentation.";
+
+    }
+
+    renderComponentSources(
+    component
+    );
+
+    renderComponentImage(
+    component
+    );
+
+
+    console.log(
+        "[SpecLayer] Selected component:",
+        component
+    );
+
+}
+
+
+// ============================================================
+// COMPONENT SOURCE EVIDENCE
+// ============================================================
+
+function renderComponentSources(component) {
+
+    componentSourceList.innerHTML = "";
+
+    if (!component || !currentAnalysis) {
+        return;
+    }
+
+
+    const sourceIds =
+        Array.isArray(component.source_ids)
+            ? component.source_ids
+            : [];
+
+    const allSources =
+        Array.isArray(currentAnalysis.sources)
+            ? currentAnalysis.sources
+            : [];
+
+
+    // ----------------------------------------
+    // No evidence sources
+    // ----------------------------------------
+
+    if (sourceIds.length === 0) {
+
+        const emptyMessage =
+            document.createElement("p");
+
+        emptyMessage.className =
+            "source-evidence-empty";
+
+        emptyMessage.textContent =
+            "No supporting source was returned for this component.";
+
+        componentSourceList.appendChild(
+            emptyMessage
+        );
+
+        return;
+    }
+
+
+    // ----------------------------------------
+    // Match source_ids to source objects
+    // ----------------------------------------
+
+    const matchedSources =
+        sourceIds
+            .map(function (sourceId) {
+
+                return allSources.find(
+                    function (source) {
+
+                        return String(
+                            source.source_id
+                        ) === String(
+                            sourceId
+                        );
+
+                    }
+                );
+
+            })
+            .filter(Boolean);
+
+
+    // ----------------------------------------
+    // IDs exist but source objects do not
+    // ----------------------------------------
+
+    if (matchedSources.length === 0) {
+
+        const emptyMessage =
+            document.createElement("p");
+
+        emptyMessage.className =
+            "source-evidence-empty";
+
+        emptyMessage.textContent =
+            "Supporting source details are unavailable.";
+
+        componentSourceList.appendChild(
+            emptyMessage
+        );
+
+        return;
+    }
+
+
+    // ----------------------------------------
+    // Render evidence sources
+    // ----------------------------------------
+
+    matchedSources.forEach(
+        function (source) {
+
+            const sourceItem =
+                document.createElement("a");
+
+            sourceItem.className =
+                "component-source-item";
+
+
+            if (source.url) {
+
+                sourceItem.href =
+                    source.url;
+
+                sourceItem.target =
+                    "_blank";
+
+                sourceItem.rel =
+                    "noopener noreferrer";
+
+            }
+            else {
+
+                sourceItem.removeAttribute(
+                    "href"
+                );
+
+            }
+
+
+            const sourceLabel =
+                document.createElement("span");
+
+            sourceLabel.className =
+                "component-source-label";
+
+            sourceLabel.textContent =
+                `SOURCE ${source.source_id}`;
+
+
+            const sourceTitle =
+                document.createElement("span");
+
+            sourceTitle.className =
+                "component-source-title";
+
+            sourceTitle.textContent =
+                source.title ||
+                "Documentation source";
+
+
+            const sourceArrow =
+                document.createElement("span");
+
+            sourceArrow.className =
+                "material-symbols-outlined component-source-arrow";
+
+            sourceArrow.textContent =
+                "open_in_new";
+
+
+            sourceItem.appendChild(
+                sourceLabel
+            );
+
+            sourceItem.appendChild(
+                sourceTitle
+            );
+
+            if (source.url) {
+
+                sourceItem.appendChild(
+                    sourceArrow
+                );
+
+            }
+
+
+            componentSourceList.appendChild(
+                sourceItem
+            );
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// COMPONENT VISUAL REFERENCE
+// ============================================================
+
+function renderComponentImage(component) {
+    if (!componentImageFrame) {
+        return;
+    }
+
+    componentImageFrame.innerHTML = "";
+
+    const media = component?.media;
+
+    const imageUrl =
+        media?.image_url ||
+        media?.image?.image_url ||
+        media?.thumbnail_url ||
+        media?.image?.thumbnail_url ||
+        null;
+
+    if (!imageUrl) {
+        const emptyState = document.createElement("div");
+        emptyState.className = "component-image-empty";
+
+        emptyState.innerHTML = `
+            <span class="material-symbols-outlined">image</span>
+            <span>No generic image available</span>
+        `;
+
+        componentImageFrame.appendChild(emptyState);
+        return;
+    }
+
+    const image = document.createElement("img");
+
+    image.className = "component-reference-image";
+    image.src = imageUrl;
+    image.alt = `Generic visual reference for ${component?.name || "component"}`;
+    image.loading = "lazy";
+
+    image.addEventListener("error", () => {
+        componentImageFrame.innerHTML = `
+            <div class="component-image-empty">
+                <span class="material-symbols-outlined">broken_image</span>
+                <span>Generic image could not be loaded</span>
+            </div>
+        `;
+    });
+
+    const disclaimer = document.createElement("div");
+    disclaimer.className = "component-image-disclaimer";
+    disclaimer.textContent =
+        "Generic visual reference — not the exact device component.";
+
+    componentImageFrame.appendChild(image);
+    componentImageFrame.appendChild(disclaimer);
+}
+
+// ============================================================
+// COMPONENT FILTERS
+// ============================================================
+
+function applyComponentFilter(filter) {
+
+    if (!currentAnalysis) {
+        return;
+    }
+
+    const analysis =
+        currentAnalysis.analysis || {};
+
+    const allComponents =
+        Array.isArray(analysis.components)
+            ? analysis.components
+            : [];
+
+
+    activeComponentFilter =
+        filter || "all";
+
+
+    // ----------------------------------------
+    // Update active filter button
+    // ----------------------------------------
+
+    filterButtons.forEach(function (button) {
+
+        const buttonFilter =
+            button.dataset.filter;
+
+        if (buttonFilter === activeComponentFilter) {
+
+            button.classList.add(
+                "active"
+            );
+
+        }
+        else {
+
+            button.classList.remove(
+                "active"
+            );
+
+        }
+
+    });
+
+
+    // ----------------------------------------
+    // Filter components
+    // ----------------------------------------
+
+    let visibleComponents =
+        allComponents;
+
+    if (activeComponentFilter !== "all") {
+
+        visibleComponents =
+            allComponents.filter(
+                function (component) {
+
+                    return component.scope ===
+                        activeComponentFilter;
+
+                }
+            );
+
+    }
+
+
+    // ----------------------------------------
+    // Re-render sidebar
+    // ----------------------------------------
+
+    renderComponentList(
+        visibleComponents
+    );
+
+
+    // ----------------------------------------
+    // Clear Inspector
+    //
+    // The previously selected component may
+    // no longer be visible after filtering.
+    // ----------------------------------------
+
+    inspectorContent.classList.add(
+        "hidden"
+    );
+
+    inspectorEmpty.classList.remove(
+        "hidden"
+    );
+
+
+    console.log(
+        "[SpecLayer] Component filter:",
+        activeComponentFilter,
+        "Visible:",
+        visibleComponents.length
+    );
+
+}
+
+filterButtons.forEach(function (button) {
+
+    button.addEventListener(
+        "click",
+        function () {
+
+            const filter =
+                button.dataset.filter ||
+                "all";
+
+            applyComponentFilter(
+                filter
+            );
+
+        }
+    );
+
+});
 
 // ============================================================
 // 13. ERROR HANDLING

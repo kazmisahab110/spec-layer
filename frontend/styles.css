@@ -1754,6 +1754,151 @@ a {
 }
 
 
+/* ============================================================
+   COMPONENT GRAPH NODES
+   ============================================================ */
+
+.graph-node-layer {
+    position: absolute;
+
+    inset: 45px 55px 60px;
+
+    z-index: 1;
+}
+
+
+.graph-node {
+    position: absolute;
+
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    width: 145px;
+    min-height: 52px;
+
+    padding: 9px 11px;
+
+    border: 1px solid var(--border);
+    border-radius: 9px;
+
+    background:
+        rgba(13, 19, 33, 0.94);
+
+    color: var(--slate-200);
+
+    cursor: pointer;
+
+    text-align: left;
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.2);
+
+    transform:
+        translate(-50%, -50%);
+
+    transition:
+        border-color var(--transition),
+        background var(--transition),
+        box-shadow var(--transition),
+        transform var(--transition);
+}
+
+
+.graph-node:hover {
+    border-color:
+        var(--border-strong);
+
+    background:
+        rgba(24, 35, 55, 0.96);
+
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.28),
+        0 0 25px rgba(182, 226, 210, 0.05);
+
+    transform:
+        translate(-50%, -50%)
+        translateY(-2px);
+}
+
+
+.graph-node.active {
+    border-color:
+        var(--mint-200);
+
+    background:
+        rgba(182, 226, 210, 0.1);
+
+    box-shadow:
+        0 0 0 1px rgba(182, 226, 210, 0.08),
+        0 0 28px rgba(182, 226, 210, 0.09);
+}
+
+
+.graph-node-marker {
+    width: 8px;
+    height: 8px;
+
+    flex: 0 0 auto;
+
+    border: 1px solid
+        var(--mint-200);
+
+    border-radius: 50%;
+
+    background:
+        rgba(182, 226, 210, 0.12);
+
+    box-shadow:
+        0 0 9px
+        rgba(182, 226, 210, 0.4);
+}
+
+
+.graph-node-copy {
+    min-width: 0;
+}
+
+
+.graph-node-copy strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: var(--slate-100);
+
+    font-family:
+        "Space Grotesk",
+        sans-serif;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    line-height: 1.3;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.graph-node-copy small {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--slate-500);
+
+    font-family:
+        "Space Grotesk",
+        monospace;
+
+    font-size: 7px;
+    font-weight: 600;
+
+    letter-spacing: 0.1em;
+}
+
 .canvas-corner {
     position: absolute;
     z-index: 2;
@@ -2105,7 +2250,11 @@ a {
 
 
 .component-image-frame {
+    
+    position: relative;
     min-height: 160px;
+
+
 
     overflow: hidden;
 
@@ -2898,4 +3047,376 @@ a {
         transition-duration: 0.01ms !important;
     }
 
+}
+
+/* ============================================================
+   30. COMPONENT GRAPH — CHECKPOINT 5
+   ============================================================ */
+
+.graph-canvas {
+    position: absolute;
+    inset: 0;
+
+    display: block;
+
+    overflow: hidden;
+}
+
+
+/* Layer containing every component node */
+
+.graph-node-layer {
+    position: absolute;
+
+    top: 55px;
+    right: 70px;
+    bottom: 70px;
+    left: 70px;
+
+    z-index: 3;
+
+    pointer-events: none;
+}
+
+
+/* Individual component */
+
+.graph-node {
+    position: absolute;
+
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    width: 150px;
+    min-height: 54px;
+
+    padding: 10px 12px;
+
+    border: 1px solid rgba(182, 226, 210, 0.28);
+    border-radius: 10px;
+
+    background: rgba(13, 19, 33, 0.96);
+
+    color: var(--slate-200);
+
+    cursor: pointer;
+
+    text-align: left;
+
+    pointer-events: auto;
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.28),
+        inset 0 0 20px rgba(182, 226, 210, 0.015);
+
+    transform: translate(-50%, -50%);
+
+    transition:
+        border-color var(--transition),
+        background var(--transition),
+        box-shadow var(--transition),
+        transform var(--transition);
+}
+
+
+.graph-node:hover {
+    border-color: rgba(182, 226, 210, 0.55);
+
+    background: rgba(25, 35, 55, 0.98);
+
+    box-shadow:
+        0 14px 35px rgba(0, 0, 0, 0.32),
+        0 0 24px rgba(182, 226, 210, 0.08);
+
+    transform:
+        translate(-50%, -50%)
+        scale(1.03);
+}
+
+
+.graph-node.active {
+    border-color: var(--mint-200);
+
+    background: rgba(182, 226, 210, 0.11);
+
+    box-shadow:
+        0 0 0 1px rgba(182, 226, 210, 0.1),
+        0 0 28px rgba(182, 226, 210, 0.14);
+}
+
+
+/* Small glowing dot */
+
+.graph-node-marker {
+    display: block;
+
+    width: 8px;
+    height: 8px;
+
+    flex: 0 0 8px;
+
+    border: 1px solid var(--mint-200);
+    border-radius: 50%;
+
+    background: rgba(182, 226, 210, 0.16);
+
+    box-shadow:
+        0 0 9px rgba(182, 226, 210, 0.55);
+}
+
+
+/* Text container */
+
+.graph-node-copy {
+    display: block;
+
+    min-width: 0;
+
+    flex: 1;
+}
+
+
+.graph-node-copy strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: var(--slate-100);
+
+    font-family:
+        "Space Grotesk",
+        sans-serif;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    line-height: 1.25;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.graph-node-copy small {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--slate-500);
+
+    font-family:
+        "Space Grotesk",
+        monospace;
+
+    font-size: 7px;
+    font-weight: 600;
+
+    letter-spacing: 0.11em;
+
+    line-height: 1.2;
+}
+
+
+/* Scope distinction */
+
+.graph-node[data-scope="internal"] .graph-node-marker {
+    background: var(--mint-200);
+}
+
+
+.graph-node[data-scope="external"] .graph-node-marker {
+    background: transparent;
+}
+
+
+.graph-node[data-scope="unknown"] .graph-node-marker {
+    border-color: var(--slate-500);
+
+    background: var(--slate-500);
+
+    box-shadow: none;
+}
+
+
+/* ============================================================
+   COMPONENT SOURCE EVIDENCE
+   ============================================================ */
+
+.component-source-item {
+    display: grid;
+
+    grid-template-columns:
+        auto 1fr auto;
+
+    align-items: center;
+
+    gap: 10px;
+
+    width: 100%;
+
+    padding: 11px 0;
+
+    border-bottom:
+        1px solid var(--border);
+
+    color: inherit;
+
+    text-decoration: none;
+
+    transition:
+        background var(--transition),
+        color var(--transition);
+}
+
+
+.component-source-item:hover {
+    color: var(--mint-200);
+}
+
+
+.component-source-label {
+    color: var(--mint-300);
+
+    font-family:
+        "Space Grotesk",
+        monospace;
+
+    font-size: 7px;
+    font-weight: 600;
+
+    letter-spacing: 0.1em;
+
+    white-space: nowrap;
+}
+
+
+.component-source-title {
+    overflow: hidden;
+
+    color: var(--slate-300);
+
+    font-size: 10px;
+
+    line-height: 1.4;
+
+    text-overflow: ellipsis;
+}
+
+
+.component-source-item:hover
+.component-source-title {
+    color: var(--slate-100);
+}
+
+
+.component-source-arrow {
+    color: var(--slate-500);
+
+    font-size: 14px;
+}
+
+
+.component-source-item:hover
+.component-source-arrow {
+    color: var(--mint-200);
+}
+
+
+.source-evidence-empty {
+    margin: 0;
+
+    padding: 12px 0;
+
+    color: var(--slate-500);
+
+    font-size: 10px;
+
+    line-height: 1.5;
+}
+
+
+/* ============================================================
+   COMPONENT VISUAL REFERENCE
+   ============================================================ */
+
+.component-reference-image {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    border-radius: inherit;
+}
+
+
+.component-image-empty {
+    display: flex;
+
+    width: 100%;
+    height: 100%;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    color: var(--slate-600);
+
+    text-align: center;
+
+    font-family:
+        "Space Grotesk",
+        sans-serif;
+
+    font-size: 8px;
+
+    letter-spacing: 0.08em;
+}
+
+
+.component-image-empty
+.material-symbols-outlined {
+    font-size: 28px;
+}
+
+
+.component-image-disclaimer {
+    position: absolute;
+
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+
+    padding: 7px 8px;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.08);
+
+    border-radius: 6px;
+
+    background:
+        rgba(5, 9, 17, 0.86);
+
+    color: var(--slate-400);
+
+    font-family:
+        "Space Grotesk",
+        sans-serif;
+
+    font-size: 7px;
+    font-weight: 500;
+
+    line-height: 1.35;
+
+    letter-spacing: 0.04em;
+
+    text-align: center;
+
+    backdrop-filter: blur(6px);
 }

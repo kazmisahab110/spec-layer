@@ -87,7 +87,7 @@ def _prepare_documents(search_results: list[dict]) -> list[dict]:
     documents = []
     used_source_ids = set()
 
-    for index, result in enumerate(search_results[:12], start=1):
+    for index, result in enumerate(search_results[:6], start=1):
         content = (
             result.get("raw_content")
             or result.get("content")
@@ -123,7 +123,7 @@ def _prepare_documents(search_results: list[dict]) -> list[dict]:
                 "source_id": source_id,
                 "title": str(result.get("title") or "").strip(),
                 "url": str(result.get("url") or "").strip(),
-                "content": content[:30000],
+                "content": content[:12000],
             }
         )
 
@@ -491,6 +491,12 @@ def interpret_internal_components(
 
     documents_text = _format_documents_for_prompt(
         documents
+    )
+
+    
+    print(
+        f"[Interpreter] Sending {len(documents)} documents "
+        f"({len(documents_text):,} characters) to GPT-OSS..."
     )
 
     prompt = f"""
@@ -865,6 +871,10 @@ Do NOT manufacture claims merely to populate either array.
     # GPT-OSS
     # -----------------------------------------------------
 
+    print(
+        f"[Interpreter] Calling model: {OLLAMA_INTERPRETER_MODEL}"
+    )
+
     response = ollama.chat(
         model=OLLAMA_INTERPRETER_MODEL,
         messages=[
@@ -876,6 +886,10 @@ Do NOT manufacture claims merely to populate either array.
         options={
             "temperature": 0,
         },
+    )
+
+    print(
+        "[Interpreter] GPT-OSS response received."
     )
 
     raw_text = (
